@@ -45,8 +45,24 @@ def extract_names(filename):
     with the year string followed by the name-rank strings in alphabetical order.
     ['2006', 'Aaliyah 91', Aaron 57', 'Abagail 895', ' ...]
     """
-    names = []
-    # +++your code here+++
+    names = {}
+    with open(filename) as f:
+        for line in f.readlines():
+            year_match = re.search(r'Popularity\sin\s(\d{4})', line)
+            if year_match:
+                year = year_match.group(1)
+                if year not in names:
+                    names[year] = ""
+            match = re.search(r"<td>(\d+)</td><td>(\w+)</td><td>(\w+)</td>", line)
+            if match:
+                rank = match.group(1)
+                boy_name = match.group(2)
+                girl_name = match.group(3)
+                if boy_name not in names:
+                    names[boy_name] = rank
+                if girl_name not in names:
+                    names[girl_name] = rank
+    print(names)
     return names
 
 
@@ -64,24 +80,23 @@ def create_parser():
 def main(args):
     # Create a command-line parser object with parsing rules
     parser = create_parser()
-    # Run the parser to collect command-line arguments into a NAMESPACE called 'ns'
     ns = parser.parse_args(args)
-
     if not ns:
         parser.print_usage()
         sys.exit(1)
 
+    create_summary = ns.summaryfile
     file_list = ns.files
 
-    # option flag
-    create_summary = ns.summaryfile
-
-    # For each filename, call `extract_names` with that single file.
-    # Format the resulting list a vertical list (separated by newline \n)
-    # Use the create_summary flag to decide whether to print the list,
-    # or to write the list to a summary file e.g. `baby1990.html.summary`
-
-    # +++your code here+++
+    for file in file_list:
+        names = extract_names(file)
+        with open(file + ".summary", "w+") as sf:
+            for name in sorted(names):
+                sf.write(name + " " + str(names[name]) + "\n")
+                if not create_summary:
+                    print(name + " " + str(names[name]))
+                else:
+                    return names
 
 
 if __name__ == '__main__':
